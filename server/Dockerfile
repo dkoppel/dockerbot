@@ -10,14 +10,12 @@ FROM dockerfile/ubuntu
 # Install Python, modules, clone git repo
 RUN apt-get install -y python python-dev python-pip python-virtualenv
 RUN pip install irc docker-py
-RUN cd data ; git clone http://github.com/kuroishi/dockerbot 
+RUN mkdir /src ; cd /src ; git clone https://github.com/dkoppel/dockerbot
 
-# Define mountable directories.
-VOLUME ['/data']
+VOLUME ['/src']
 
 # Define working directory.
-WORKDIR /data
+WORKDIR /src
 
 # Define default command.
 CMD ['/bin/bash']
-
