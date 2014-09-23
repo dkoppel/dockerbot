@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+#     __         __           __        __
+# ___/ /__  ____/ /_____ ____/ /  ___  / /_
+#/ _  / _ \/ __/  '_/ -_) __/ _ \/ _ \/ __/
+#\_,_/\___/\__/_/\_\\__/_/ /_.__/\___/\__/
+#
+
+import irc.bot
+import irc.strings
+import docker
+import sys
+
+class bot(irc.bot.SingleServerIRCBot):
+    def __init__(self, channel, nickname, server, port=6667):
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        self.channel = channel
+
+    def on_nicknameinuse(self, c, e):
+        c.nick(c.get_nickname() + "_")
+
+    def on_welcome(self, c, e):
+        c.join(self.channel)
+
+    def on_privmsg(self, c, e):
+        self.do_command(e, e.arguments[0])
+
+    def on_pubmsg(self, c, e):
+        a = e.arguments[0].split(":", 1)
+        if len(a) > 1 and irc.strings.lower(a[0]) == irc.strings.lower(self.connection.get_nickname()):
+            self.do_command(e, a[1].strip())
+        return
+
+    def do_command(self, e, cmd):
+        c = self.connection
+        if cmd == "disconnect":
+            self.disconnect()
+        elif cmd == "help":
+            commands = 'help, version, ps, pull, run, shell'
+            msg = 'Supported commands: '+commands
+            self.send_output(c,e,msg)
+        elif cmd == "test":
+            self.send_output(c,e,cmd)
+        elif cmd == "die":
+            self.die()
+        elif cmd == "version":
+            for i in dock_ver():
+                self.send_output(c,e,i)
+        elif cmd == "shell":
+            for i in dock_shell():
+                self.send_output(c,e,i)
+        elif cmd == "ps":
+            for i in dock_ps():
+                self.send_output(c,e,i)
+        elif "pull" in cmd:
+            for i in dock_pull(cmd):
+                self.send_output(c,e,i)
+        elif "run" in cmd:
+            for i in dock_run(cmd):
+                self.send_output(c,e,i)
+        else:
+            msg = "Not understood: " + cmd
+            self.send_output(c,e,msg)
+
+    def send_output(self, c, e, msg):
+        if e.target == self.channel:
+            out = self.channel
+        else:
+            out = e.source.nick
+        try:
+            c.privmsg(out, msg)
+        except:
+            print 'output failed: '
+            print msg
+            print 'Event Object: '
+            print dir(e)
+            print 'Connection Object: '
+            print dir(c)
+            print 'vars:'
+            print vars()
+
+def dock_ps():
+    msg = []
+    c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+    cts = c.containers(quiet=False, all=False, trunc=True, latest=False,  since=None, before=None, limit=-1)
+    for i in cts:
+        msg.append("Name: %s -- Image: %s -- Status: %s -- Command: %s" %
+                   (i[u'Names'][0],
+                    i[u'Image'],
+                    i[u'Status'],
+                    i[u'Command']))
+    return msg
+
+def dock_pull(ucmd):
+    try:
+        c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+        command, args = ucmd.split(' ',1)
+        repo = args
+        c.pull(repo, tag=None, stream=False)
+        msg = ['Docker repository pulled: '+repo]
+        return msg
+    except:
+        msg = ["Exception-al command!"]
+        print "exception: "
+        print sys.exc_info()
+        print vars()
+        return msg
+
+def dock_run(ucmd):
+    try:
+        c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+        command, args = ucmd.split(' ',1)
+        image, cmd = args.split(' ',1)
+        print "command run: " + image + " " + cmd
+        c.start(c.create_container(image, command=cmd, hostname=None, user=None, detach=False,
+                                   stdin_open=False, tty=False, mem_limit=0, ports=None, environment=None,
+                                   dns=None, volumes=None, volumes_from=None, network_disabled=False,
+                                   name=None, entrypoint=None, cpu_shares=None, working_dir=None))
+        msg= [image+' started.']
+        return msg
+    except:
+        msg = ["Exception-al command!"]
+        print "exception: "
+        print sys.exc_info()
+        print vars()
+        return msg
+
+def dock_shell():
+    image = 'sshd-ubuntu'
+    try:
+        c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+        ct = c.create_container(image)
+        c.start(ct,publish_all_ports=True)
+        port = c.port(ct,22)[0].get('HostPort')
+        ip, dport = dockerhost.split(':',1)
+        msg = [image+' started, connect with ssh root@'+ip+' -p '+port]
+        return msg
+    except:
+        msg = ["Exception-al command!"]
+        print "exception: "
+        print sys.exc_info()
+        print vars()
+        return msg
+
+def dock_ver():
+    msg = []
+    c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+    msg.append(c.version())
+    return msg
+
+def dock_info():
+    c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+    msg = c.info().viewitems()
+    return msg
+
+def main():
+    if len(sys.argv) != 5:
+        print("Usage: dockerbot <irc server[:port]> <docker api host:port> <channel> <nickname>")
+        sys.exit(1)
+
+    s = sys.argv[1].split(":", 1)
+    server = s[0]
+    if len(s) == 2:
+        try:
+            port = int(s[1])
+        except ValueError:
+            print("Error: Erroneous port.")
+            sys.exit(1)
+    else:
+        port = 6667
+
+    global dockerhost
+    dockerhost = sys.argv[2]
+    channel = sys.argv[3]
+    nickname = sys.argv[4]
+
+    b=bot(channel, nickname, server, port)
+    b.start()
+
+if __name__ == "__main__":
+    main()
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
