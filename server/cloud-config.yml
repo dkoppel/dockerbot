@@ -14,4 +14,27 @@ users:
         - docker
     ssh-authorized-keys:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCWpKyj7D8o79taHfXdgYzfaW+Xy5C8BSg+2r5pbcMHSOWjf395yfFoey2oLszRme9vpWCHlR6qFjoX2qLAeVrW25M/JSqV4nmkG+gYxFmhOTRYQDEcoRBc5xas26f2Nk6m2CJseBVRMF8fpSUyrXm+xAFkHgIU8aR+jJ+yOBQBaySpqM/sc2rB0zjHfoAfQj2dowDh1KGuwSK+sPjrjws3DN0Xd8zYRCvau0eWyrzpQaWIl2nkn8nvP+te7nB42FvSThnFN7Yh2Np6/i8Y3rWQjp7LPSphtsFFl9Ww+lg08iZ8kGyVW1rlN7plXUW1zfjA2FeYRFw9Pu64EJlkl6MX kuroishi@deepthought
+units:
+  - name: docker-tcp.socket
+    command: start
+    enable: yes
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
 
+      [Socket]
+      ListenStream=2375
+      BindIPv6Only=both
+      Service=docker.service
+
+      [Install]
+      WantedBy=sockets.target
+  - name: enable-docker-tcp.service
+    command: start
+    content: |
+      [Unit]
+      Description=Enable the Docker Socket for the API
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemctl enable docker-tcp.socket
