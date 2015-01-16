@@ -18,7 +18,8 @@ class Bot(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
 
-    def on_nicknameinuse(self, c, e):
+    @staticmethod
+    def on_nicknameinuse(c, e):
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
@@ -152,6 +153,7 @@ def dock_info():
 
 def dock_githubfetch(url):
         c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+        msg = []
         #TODO here we will pull down a github repo somehow.
         return msg
 
