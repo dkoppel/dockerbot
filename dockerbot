@@ -64,7 +64,7 @@ class bot(irc.bot.SingleServerIRCBot):
                 self.send_output(c, e, i)
         else:
             msg = "Not understood: " + cmd
-            self.send_output(c,e,msg)
+            self.send_output(c, e, msg)
 
     def send_output(self, c, e, msg):
         if e.target == self.channel:
@@ -116,11 +116,7 @@ def dock_run(ucmd):
         msg= [image+' started.']
         return msg
     except:
-        msg = ["Exception-al command!"]
-        print "exception: "
-        print sys.exc_info()
-        print vars()
-        return msg
+        raise exceptionalCommand()
 
 def dock_shell():
     image = 'sshd-ubuntu'
@@ -133,9 +129,8 @@ def dock_shell():
         msg = [image+' started, connect with ssh root@'+ip+' -p '+port]
         return msg
     except:
-        msg = ["Exception-al command!"]
-        print "exception: " + sys.exc_info() + print vars()
-        return msg
+        raise exceptionalCommand()
+
 
 def dock_ver():
     msg = []
@@ -153,15 +148,22 @@ def dock_githubfetch(url):
         #TODO here we will pull down a github repo somehow.
         return msg
 
-def outputFailed(msg, e, c)
-            print 'output failed: '
-            print msg
-            print 'Event Object: '
-            print dir(e)
-            print 'Connection Object: '
-            print dir(c)
-            print 'vars:'
-            print vars()
+def outputFailed(msg, e, c):
+    print 'output failed: '
+    print msg
+    print 'Event Object: '
+    print dir(e)
+    print 'Connection Object: '
+    print dir(c)
+    print 'vars:'
+    print vars()
+
+def exceptionalCommand():
+    msg = ["Exception-al command!"]
+    print "exception: "
+    print sys.exc_info()
+    print vars()
+    return msg
 
 def main():
     if len(sys.argv) != 5:
