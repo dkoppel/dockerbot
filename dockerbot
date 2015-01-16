@@ -5,6 +5,8 @@
 #\_,_/\___/\__/_/\_\\__/_/ /_.__/\___/\__/
 #
 
+#TODO possibly threading
+
 import irc.bot
 import irc.strings
 import docker
@@ -44,19 +46,22 @@ class bot(irc.bot.SingleServerIRCBot):
             self.die()
         elif cmd == "version":
             for i in dock_ver():
-                self.send_output(c,e,i)
+                self.send_output(c, e, i)
         elif cmd == "shell":
             for i in dock_shell():
-                self.send_output(c,e,i)
+                self.send_output(c, e, i)
         elif cmd == "ps":
             for i in dock_ps():
-                self.send_output(c,e,i)
+                self.send_output(c, e, i)
         elif "pull" in cmd:
             for i in dock_pull(cmd):
-                self.send_output(c,e,i)
+                self.send_output(c, e, i)
+        elif "ghfetch" in cmd:
+            for i in dock_githubfetch(cmd):
+                self.send_output(c, e, i)
         elif "run" in cmd:
             for i in dock_run(cmd):
-                self.send_output(c,e,i)
+                self.send_output(c, e, i)
         else:
             msg = "Not understood: " + cmd
             self.send_output(c,e,msg)
@@ -69,14 +74,7 @@ class bot(irc.bot.SingleServerIRCBot):
         try:
             c.privmsg(out, msg)
         except:
-            print 'output failed: '
-            print msg
-            print 'Event Object: '
-            print dir(e)
-            print 'Connection Object: '
-            print dir(c)
-            print 'vars:'
-            print vars()
+            raise outputFailed(msg, e, c)
 
 def dock_ps():
     msg = []
@@ -136,9 +134,7 @@ def dock_shell():
         return msg
     except:
         msg = ["Exception-al command!"]
-        print "exception: "
-        print sys.exc_info()
-        print vars()
+        print "exception: " + sys.exc_info() + print vars()
         return msg
 
 def dock_ver():
@@ -151,6 +147,21 @@ def dock_info():
     c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
     msg = c.info().viewitems()
     return msg
+
+def dock_githubfetch(url):
+        c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
+        #TODO here we will pull down a github repo somehow.
+        return msg
+
+def outputFailed(msg, e, c)
+            print 'output failed: '
+            print msg
+            print 'Event Object: '
+            print dir(e)
+            print 'Connection Object: '
+            print dir(c)
+            print 'vars:'
+            print vars()
 
 def main():
     if len(sys.argv) != 5:
