@@ -12,7 +12,8 @@ import irc.strings
 import docker
 import sys
 
-class bot(irc.bot.SingleServerIRCBot):
+
+class Bot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
@@ -39,9 +40,9 @@ class bot(irc.bot.SingleServerIRCBot):
         elif cmd == "help":
             commands = 'help, version, ps, pull, run, shell'
             msg = 'Supported commands: '+commands
-            self.send_output(c,e,msg)
+            self.send_output(c, e, msg)
         elif cmd == "test":
-            self.send_output(c,e,cmd)
+            self.send_output(c, e, cmd)
         elif cmd == "die":
             self.die()
         elif cmd == "version":
@@ -74,7 +75,8 @@ class bot(irc.bot.SingleServerIRCBot):
         try:
             c.privmsg(out, msg)
         except:
-            raise outputFailed(msg, e, c)
+            raise outputfailed(msg, e, c)
+
 
 def dock_ps():
     msg = []
@@ -88,10 +90,11 @@ def dock_ps():
                     i[u'Command']))
     return msg
 
+
 def dock_pull(ucmd):
     try:
         c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
-        command, args = ucmd.split(' ',1)
+        command, args = ucmd.split(' ', 1)
         repo = args
         c.pull(repo, tag=None, stream=False)
         msg = ['Docker repository pulled: '+repo]
@@ -103,33 +106,35 @@ def dock_pull(ucmd):
         print vars()
         return msg
 
+
 def dock_run(ucmd):
     try:
         c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
-        command, args = ucmd.split(' ',1)
-        image, cmd = args.split(' ',1)
+        command, args = ucmd.split(' ', 1)
+        image, cmd = args.split(' ', 1)
         print "command run: " + image + " " + cmd
         c.start(c.create_container(image, command=cmd, hostname=None, user=None, detach=False,
                                    stdin_open=False, tty=False, mem_limit=0, ports=None, environment=None,
                                    dns=None, volumes=None, volumes_from=None, network_disabled=False,
                                    name=None, entrypoint=None, cpu_shares=None, working_dir=None))
-        msg= [image+' started.']
+        msg = [image + ' started.']
         return msg
     except:
-        raise exceptionalCommand()
+        raise exceptionalcommand()
+
 
 def dock_shell():
     image = 'sshd-ubuntu'
     try:
         c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
         ct = c.create_container(image)
-        c.start(ct,publish_all_ports=True)
-        port = c.port(ct,22)[0].get('HostPort')
-        ip, dport = dockerhost.split(':',1)
+        c.start(ct, publish_all_ports=True)
+        port = c.port(ct, 22)[0].get('HostPort')
+        ip, dport = dockerhost.split(':', 1)
         msg = [image+' started, connect with ssh root@'+ip+' -p '+port]
         return msg
     except:
-        raise exceptionalCommand()
+        raise exceptionalcommand()
 
 
 def dock_ver():
@@ -138,17 +143,20 @@ def dock_ver():
     msg.append(c.version())
     return msg
 
+
 def dock_info():
     c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
     msg = c.info().viewitems()
     return msg
+
 
 def dock_githubfetch(url):
         c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
         #TODO here we will pull down a github repo somehow.
         return msg
 
-def outputFailed(msg, e, c):
+
+def outputfailed(msg, e, c):
     print 'output failed: '
     print msg
     print 'Event Object: '
@@ -158,12 +166,14 @@ def outputFailed(msg, e, c):
     print 'vars:'
     print vars()
 
-def exceptionalCommand():
+
+def exceptionalcommand():
     msg = ["Exception-al command!"]
     print "exception: "
     print sys.exc_info()
     print vars()
     return msg
+
 
 def main():
     if len(sys.argv) != 5:
@@ -186,7 +196,7 @@ def main():
     channel = sys.argv[3]
     nickname = sys.argv[4]
 
-    b=bot(channel, nickname, server, port)
+    b = Bot(channel, nickname, server, port)
     b.start()
 
 if __name__ == "__main__":
