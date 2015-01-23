@@ -6,6 +6,9 @@
 #
 
 #TODO possibly threading
+# TODO docstrings and comments
+#TODO cleaner pip env (requirements.txt) and setup/docker env
+#TODO error handling and QA!
 
 import irc.bot
 import irc.strings
