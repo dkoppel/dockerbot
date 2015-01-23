@@ -162,7 +162,6 @@ def dock_githubfetch(ucmd):
         exceptionalcommand()
     gitdir = "/tmp/"+name+"/"
     try:
-        print "fetching" + url + " to " + gitdir
         git.Repo.clone_from(url=url, to_path=gitdir)
     except git.exc.GitCommandError as e:
         print e.message
