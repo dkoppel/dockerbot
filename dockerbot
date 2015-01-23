@@ -122,7 +122,7 @@ def dock_run(ucmd):
         msg = [image + ' started.']
         return msg
     except:
-        raise exceptionalcommand()
+        exceptionalcommand()
 
 
 def dock_shell():
@@ -136,7 +136,7 @@ def dock_shell():
         msg = [image+' started, connect with ssh root@'+ip+' -p '+port]
         return msg
     except:
-        raise exceptionalcommand()
+        exceptionalcommand()
 
 
 def dock_ver():
@@ -154,7 +154,7 @@ def dock_info():
 
 def dock_githubfetch(ucmd):
     c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
-    msg = []
+    msg = []#TODO add output for this command
     command, url = ucmd.split(' ', 1)
     try:
         name = url.rsplit('/', 1)[1]
