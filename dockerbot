@@ -112,6 +112,7 @@ def dock_run(ucmd):
     except ValueError as e:
         msg = ["You must pass a command"]
         print e.args
+        return msg
     try:
         c.start(c.create_container(image, command=cmd, hostname=None, user=None, detach=False,
                                    stdin_open=False, tty=False, mem_limit=0, ports=None, environment=None,
