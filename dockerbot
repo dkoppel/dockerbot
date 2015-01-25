@@ -5,8 +5,6 @@
 #\_,_/\___/\__/_/\_\\__/_/ /_.__/\___/\__/
 #
 
-# TODO docstrings and comments
-#TODO cleaner pip env (requirements.txt) and setup/docker env
 
 import irc.bot
 import irc.strings
@@ -113,8 +111,12 @@ def dock_pull(ucmd):
 def dock_run(ucmd):
     c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
     msg = []
-    command, args = ucmd.split(' ', 1)
-    image, cmd = args.split(' ', 1)
+    try:
+        command, args = ucmd.split(' ', 1)
+        image, cmd = args.split(' ', 1)
+    except ValueError as e:
+        msg = ["You must pass a command"]
+        print e.args
     print "command run: " + image + " " + cmd
     try:
         c.start(c.create_container(image, command=cmd, hostname=None, user=None, detach=False,
@@ -158,7 +160,7 @@ def dock_info():
 
 def dock_githubfetch(ucmd):
     c = docker.Client(base_url=dockerhost, version='1.12', timeout=10)
-    msg = []#TODO add output for this command
+    msg = []
     command, url = ucmd.split(' ', 1)
     # FIXME add URL validation
     name = url.rsplit('/', 1)[1]
